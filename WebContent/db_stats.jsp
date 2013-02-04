@@ -3,9 +3,9 @@
 <%@ taglib prefix="f" uri="http://java.sun.com/jstl/fmt" %>
 
 <jsp:directive.page import="java.util.List" />
-<jsp:directive.page import="the.app.admin.DBMgmt" />
-<jsp:directive.page import="the.app.admin.Stats" />
-<jsp:useBean id="DBMgmt" class="the.app.admin.DBMgmt" scope="session" />
+<jsp:directive.page import="puzzle.admin.DBMgmt" />
+<jsp:directive.page import="puzzle.admin.Stats" />
+<jsp:useBean id="DBMgmt" class="puzzle.admin.DBMgmt" scope="session" />
     
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
