@@ -99,18 +99,18 @@ public class CreateAndPopulate
 		
 		// get mongo connection 
 		MongoFactory mf = new MongoFactory();
-		Mongo mongo = mf.getConnection("192.168.0.104", 27017);
+		Mongo mongo = mf.getConnection("192.168.23.28", 27017);
 		mongo.setWriteConcern(WriteConcern.SAFE);
 		System.out.println("got mongo connection");
 		
 		// get mysql connection
 		MySqlFactory mySqlF = new MySqlFactory();
-		Connection mysql = mySqlF.getConnection("192.168.0.104", "ezcamcart", "root", "!4U2no");
+		Connection mysql = mySqlF.getConnection("192.168.23.28", "", "root", "");
 		System.out.println("got mysql connection, closed? "+mysql.isClosed());
 		
 		// get mssql connection
 		SqlServerFactory msSqlF = new SqlServerFactory();
-		//Connection mssql = msSqlF.createConnection("192.168.23.114", "whatcounts", "sa", "dev=horse.play");
+		//Connection mssql = msSqlF.createConnection("192.168.23.114", "", "", "");
 		Connection mssql = null;
 		
 		// get Database object
