@@ -11,15 +11,20 @@ import puzzle.populate.Database.Realm;
 public class CreateAndPopulateMySQL 
 {
 
+	public void checkTables()
+	{
+		
+	}
+	
 	public void insertSubscribers(Connection mysql, Database db) throws Exception
 	{
 
-		String query = "INSERT INTO subscribers(realm_id, email, first_name, last_name, city, state) VALUES (?,?,?,?,?,?)";
+		String query = "INSERT INTO subscriber_test (realm_id, email, first_name, last_name, city, state) VALUES (?,?,?,?,?,?)";
 		PreparedStatement pst = mysql.prepareStatement(query);
 		for (int i = 0; i < db.realms.size(); i++)
 		{
 			Realm r = (Realm)db.realms.get(i);
-			System.out.println("    starting subscribers on realm "+r.getId()+ " at "+new java.util.Date());
+			System.out.println("    starting subscriber on realm "+r.getId()+ " at "+new java.util.Date());
 			int cs = 0;
 			for (int j = 0; j < r.getSubscriberCount(); j++)
 			{
@@ -58,10 +63,10 @@ public class CreateAndPopulateMySQL
 	public void insertTracking(Connection mysql, Database db) throws Exception
 	{
 
-		String insert = "INSERT INTO TRACKING (event_type, subscriber_id, event_date, realm_id, campaign_id) VALUES (?,?,NOW(),?,?)";
+		String insert = "INSERT INTO tracking_test (event_type, subscriber_id, event_date, realm_id, campaign_id) VALUES (?,?,NOW(),?,?)";
 		PreparedStatement insertPst = mysql.prepareStatement(insert);
 		
-		String get = "SELECT id FROM subscribers WHERE realm_id = ?";
+		String get = "SELECT id FROM subscriber_test WHERE realm_id = ?";
 		PreparedStatement getPst = mysql.prepareStatement(get);
 		
 		
@@ -109,8 +114,8 @@ public class CreateAndPopulateMySQL
 	public void clean(Connection mysql) throws Exception
 	{
 		Statement st = mysql.createStatement();
-		st.execute("DELETE FROM tracking");
-		st.execute("DELETE FROM subscribers");
+		st.execute("DELETE FROM tracking_test WHERE id > 0");
+		st.execute("DELETE FROM subscriber_test WHERE id > 0");
 		st.close();
 		st = null;
 	}

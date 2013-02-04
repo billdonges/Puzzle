@@ -1,1 +1,1 @@
-%JAVA_HOME%\bin\java the.app.populate.CreateAndPopulate
+%JAVA_HOME%\bin\java puzzle.populate.CreateAndPopulate

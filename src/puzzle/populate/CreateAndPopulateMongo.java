@@ -246,26 +246,93 @@ public class CreateAndPopulateMongo
 	public void populateSADCollections(Mongo mongo, Connection con, Database db) throws Exception 
 	{
 		// set up rdbms query
-		PreparedStatement pst = con.prepareStatement("SELECT id FROM subscribers WHERE realm_id = ?");
+		PreparedStatement pst = con.prepareStatement("SELECT id FROM subscriber_test WHERE realm_id = ?");
 
 		// for each realm...
 		for (int i = 0; i < db.realms.size(); i++)
 		{
+			
 			// get realm...
 			Realm r = db.realms.get(i);
-
+			System.out.println("    starting sad_test and relational_test on "+r.getName()+" at "+new java.util.Date());
+			
 			// and set up mongo connection to a db named the same as the realm...
 			DB mongoDb = mongo.getDB(r.getName());
-			DBCollection col = createOrGetCollection(mongoDb, "sad");
+			DBCollection scol = createOrGetCollection(mongoDb, "sad_test");
+			DBCollection rcol = createOrGetCollection(mongoDb, "relational_test");
 			
 			// then get all subscribers for that realm in rdbms and create a sad document for them
 			pst.setInt(1, r.getId());
 			ResultSet rs = pst.executeQuery();
 			while (rs.next())
-				insertSAD(col, rs.getInt("id"));
+			{
+				insertSAD(scol, rs.getInt("id"));
+				insertRelational(rcol, rs.getInt("id"));
+			}
+			
+			System.out.println("    stopping sad_test and relational_test on "+r.getName()+" at "+new java.util.Date());
+			System.out.println("");
 		}
 	}	
 
+	/**
+	 * 
+	 * @param col
+	 * @return
+	 */
+	public DBCollection insertRelational(DBCollection col, int subscriberId)
+	{
+		// set up relational db
+		BasicDBObject relational = new BasicDBObject();
+		relational.put("_id", subscriberId);
+			
+		// set up purchase order object
+		ArrayList<BasicDBObject> orders = new ArrayList<BasicDBObject>();
+		BasicDBObject order = new BasicDBObject();
+		order.put("order_id", subscriberId);
+		order.put("order_date", "1/1/2012");
+		order.put("amount","$"+subscriberId+".00");
+
+		ArrayList<BasicDBObject> orderItems = new ArrayList<BasicDBObject>();
+		for (int k = 0; k < 3; k++)
+		{
+			String itemName = "phone";
+			String itemAmount = "$100.00";
+				
+			if (k == 1) {
+				itemName = "tablet";
+				itemAmount = "$300.00";
+			} else if (k == 2) {
+				itemName = "tv";
+				itemAmount = "$1300.00";
+			}
+				
+			
+			BasicDBObject orderItem = new BasicDBObject();
+			orderItem.put("item_id", subscriberId+"_"+k);
+			orderItem.put("item_name", itemName);
+			orderItem.put("amount", itemAmount);
+			
+			if ((k == 2) && (subscriberId % 2 == 0))
+			{
+			}
+			else
+			{
+				orderItems.add(orderItem);
+			}
+		}
+			
+		// add order items to items array in order
+		order.put("items",orderItems);
+		orders.add(order);
+			
+		relational.put("purchase_orders", orders);
+			
+		col.insert(relational);
+
+		return col;
+	}	
+	
 	/**
 	 * 
 	 * @param col
@@ -398,7 +465,10 @@ public class CreateAndPopulateMongo
 
 			// and set up mongo connection to a db named the same as the realm...
 			DB mongoDb = mongo.getDB(r.getName());
-			DBCollection col = createOrGetCollection(mongoDb, "sad");
+			DBCollection col = createOrGetCollection(mongoDb, "sad_test");
+			removeExistingDocuments(col);
+			
+			col = createOrGetCollection(mongoDb, "relational_test");
 			removeExistingDocuments(col);
 		}
 	}

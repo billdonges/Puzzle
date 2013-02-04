@@ -1,1 +1,1 @@
-%JAVA_HOME%\bin\java the.app.db.h2.H2Factory
+%JAVA_HOME%\bin\java puzzle.db.h2.H2Factory

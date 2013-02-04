@@ -16,6 +16,7 @@ public class CreateAndPopulate
 	public static int CREATE_RDBMS = 1;
 	public static int CREATE_MONGO = 2;
 	public static int CREATE_ALL = 4;
+	public static int CREATE_RDBMS_TABLES = 9;
 	public static int CLEAN_RDBMS = 5;
 	public static int CLEAN_MONGO = 6;
 	public static int CLEAN_ALL = 8;
@@ -105,13 +106,14 @@ public class CreateAndPopulate
 		
 		// get mysql connection
 		MySqlFactory mySqlF = new MySqlFactory();
-		Connection mysql = mySqlF.getConnection("192.168.23.28", "", "root", "");
-		System.out.println("got mysql connection, closed? "+mysql.isClosed());
+		//Connection mysql = mySqlF.getConnection("192.168.23.28", "<db>", "<user>", "<pass>");
+		Connection mysql = null;
+		//System.out.println("got mysql connection, closed? "+mysql.isClosed());
 		
 		// get mssql connection
 		SqlServerFactory msSqlF = new SqlServerFactory();
-		//Connection mssql = msSqlF.createConnection("192.168.23.114", "", "", "");
-		Connection mssql = null;
+		Connection mssql = msSqlF.createConnection("192.168.23.114", "whatcounts", "sa", "dev=horse.play");
+		//Connection mssql = null;
 		
 		// get Database object
 		Database db = new Database(realmMultiplier);
@@ -147,12 +149,17 @@ public class CreateAndPopulate
 		System.out.println("done working at " + new java.util.Date());
 		
 		// close connections
-		mongo.close();			
-		mysql.close();
-
+		try
+		{
+			mongo.close();			
+			mysql.close();
+			mssql.close();
+		}
+		catch (Exception e)
+		{
+		
+		}
 	}
-
-
 	
 	private void createRDBMS(int dbType, Connection mysql, Connection mssql, Database db) throws Exception
 	{
@@ -165,6 +172,7 @@ public class CreateAndPopulate
 		else if (dbType == MSSQL)
 		{
 			CreateAndPopulateMSSQL cpMSSQL = new CreateAndPopulateMSSQL();
+			cpMSSQL.checkTables(mssql);
 			cpMSSQL.insertSubscribers(mssql, db);
 			cpMSSQL.insertTracking(mssql, db);
 		}
