@@ -11,10 +11,15 @@ public class Database
 	public Vector<String> states;
 	public Vector<Integer> events;
 	private int realmMultiplier = 10;
+	private int numOfRealmsToCreate = 1;
 	
-	public Database(int realmMultiplier)
+	public Database(int realmMultiplier, int numOfRealmsToCreate)
 	{
 		this.realmMultiplier = realmMultiplier;
+		
+		if (numOfRealmsToCreate > 0)
+			this.numOfRealmsToCreate = numOfRealmsToCreate;
+		
 		initRealms();
 		initData();
 	}
@@ -86,7 +91,7 @@ public class Database
 		if (realms == null || realms.size() == 0)
 		{
 			realms = new Vector<Realm>();
-			for (int i = 1; i <= 10; i++)
+			for (int i = 1; i <= numOfRealmsToCreate; i++)
 			{
 				Realm r = new Realm();
 				r.setId(i);

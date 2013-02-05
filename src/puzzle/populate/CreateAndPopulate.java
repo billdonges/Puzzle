@@ -16,7 +16,6 @@ public class CreateAndPopulate
 	public static int CREATE_RDBMS = 1;
 	public static int CREATE_MONGO = 2;
 	public static int CREATE_ALL = 4;
-	public static int CREATE_RDBMS_TABLES = 9;
 	public static int CLEAN_RDBMS = 5;
 	public static int CLEAN_MONGO = 6;
 	public static int CLEAN_ALL = 8;
@@ -30,6 +29,7 @@ public class CreateAndPopulate
 		{
 			int action = NONE;
 			int realmMultiplier = 10;
+			int numOfRealmsToCreate = 1;
 			int dbType = 0;
 			
 			if (args.length == 0)
@@ -73,17 +73,18 @@ public class CreateAndPopulate
 					try
 					{
 						realmMultiplier = Integer.parseInt(args[2]);
+						numOfRealmsToCreate = Integer.parseInt(args[3]);
 					}
 					catch (Exception e)
 					{
-						System.err.println("error converting the realm muliplier - is "+args[2]+" able to be converted to an int?");
+						System.err.println("error - args[2] must be an int (realmMultiplier), args[3] must be an int (numOfRealmsToCreate)");
 						e.printStackTrace();
 					}
 				}
 			}
 			
 			if (action != NONE)
-				new CreateAndPopulate().run(action, dbType, realmMultiplier);
+				new CreateAndPopulate().run(action, dbType, realmMultiplier, numOfRealmsToCreate);
 			else
 				System.out.println("nothing to run - action is " + NONE);
 		}
@@ -93,7 +94,15 @@ public class CreateAndPopulate
 		}
 	}
 	
-	public void run(int action, int dbType, int realmMultiplier) throws Exception
+	/**
+	 * 
+	 * @param action
+	 * @param dbType
+	 * @param realmMultiplier
+	 * @param numOfRealmsToCreate
+	 * @throws Exception
+	 */
+	public void run(int action, int dbType, int realmMultiplier, int numOfRealmsToCreate) throws Exception
 	{
 		// initialize 
 		System.out.println("starting createandpopulate running action "+action);
@@ -104,19 +113,24 @@ public class CreateAndPopulate
 		mongo.setWriteConcern(WriteConcern.SAFE);
 		System.out.println("got mongo connection");
 		
-		// get mysql connection
-		MySqlFactory mySqlF = new MySqlFactory();
-		//Connection mysql = mySqlF.getConnection("192.168.23.28", "<db>", "<user>", "<pass>");
 		Connection mysql = null;
-		//System.out.println("got mysql connection, closed? "+mysql.isClosed());
+		Connection mssql = null;
 		
-		// get mssql connection
-		SqlServerFactory msSqlF = new SqlServerFactory();
-		Connection mssql = msSqlF.createConnection("192.168.23.114", "whatcounts", "sa", "dev=horse.play");
-		//Connection mssql = null;
+		if (dbType == MYSQL)
+		{
+			MySqlFactory mySqlF = new MySqlFactory();
+			mysql = mySqlF.getConnection("192.168.23.28", "<db>", "<user>", "<pass>");
+			System.out.println("got mysql connection, closed? "+mysql.isClosed());
+		} 
+		else if (dbType == MSSQL)
+		{
+			SqlServerFactory msSqlF = new SqlServerFactory();
+			mssql = msSqlF.createConnection("192.168.23.114", "whatcounts", "sa", "dev=horse.play");
+			System.out.println("got mssql connection, closed? "+mssql.isClosed());			
+		}
 		
 		// get Database object
-		Database db = new Database(realmMultiplier);
+		Database db = new Database(realmMultiplier, numOfRealmsToCreate);
 		
 		System.out.println("start working at " + new java.util.Date());
 		
@@ -161,6 +175,14 @@ public class CreateAndPopulate
 		}
 	}
 	
+	/**
+	 * create subscriber and tracking records in an rdbms
+	 * @param dbType
+	 * @param mysql
+	 * @param mssql
+	 * @param db
+	 * @throws Exception
+	 */
 	private void createRDBMS(int dbType, Connection mysql, Connection mssql, Database db) throws Exception
 	{
 		if (dbType == MYSQL)
@@ -178,6 +200,15 @@ public class CreateAndPopulate
 		}
 	}
 	
+	/**
+	 * creates mongo entries by iterating through the subscriber data
+	 * @param dbType
+	 * @param mongo
+	 * @param mysql
+	 * @param mssql
+	 * @param db
+	 * @throws Exception
+	 */
 	private void createMongo(int dbType, Mongo mongo, Connection mysql, Connection mssql, Database db) throws Exception
 	{
 		CreateAndPopulateMongo cpMongo = new CreateAndPopulateMongo();
@@ -192,7 +223,7 @@ public class CreateAndPopulate
 	}
 	
 	/**
-	 * populates data in both rdbms (subscribers and tracking) and mongo (sad and relational)
+	 * populates data in both rdbms (subscriber_test and tracking_test) and mongo (sad_test and relational_test)
 	 * @param dbType
 	 * @param mysql
 	 * @param mssql
@@ -207,7 +238,7 @@ public class CreateAndPopulate
 	}
 	
 	/**
-	 * removes data from rdbms (subscribers and tracking)
+	 * removes data from rdbms (subscriber_test and tracking_test)
 	 * @param dbType
 	 * @param mysql
 	 * @param mssql
@@ -228,7 +259,9 @@ public class CreateAndPopulate
 	}
 	
 	/**
-	 * removes data from mongo db (sad and relational)
+	 * removes records from mongo (sad_test, relational_test)
+	 * @param mongo
+	 * @param db
 	 */
 	private void cleanMongo(Mongo mongo, Database db)
 	{
@@ -237,7 +270,7 @@ public class CreateAndPopulate
 	}
 	
 	/**
-	 * removes data from rdbms (subscriber and tracking) and mongo (sad and relational) 
+	 * removes data from rdbms (subscriber_test and tracking_test) and mongo (sad_test and relational_test) 
 	 * @param dbType
 	 * @param mysql
 	 * @param mssql
